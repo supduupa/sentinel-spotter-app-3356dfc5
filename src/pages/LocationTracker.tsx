@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { HeaderBar } from "@/components/ui/header-bar";
 import { MobileContainer } from "@/components/ui/mobile-container";
-import { ArrowLeft } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const LocationTracker = () => {
@@ -45,8 +45,8 @@ const LocationTracker = () => {
             className="w-full flex items-center gap-2"
             onClick={handleNext}
           >
-            <ArrowLeft className="w-4 h-4" />
             NEXT
+            <ArrowRight className="w-4 h-4" />
           </Button>
         </div>
       </div>
