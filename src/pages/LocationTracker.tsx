@@ -5,13 +5,35 @@ import { HeaderBar } from "@/components/ui/header-bar";
 import { MobileContainer } from "@/components/ui/mobile-container";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import LocationMap from "@/components/LocationMap";
+import { useToast } from "@/hooks/use-toast";
 
 const LocationTracker = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [searchLocation, setSearchLocation] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState<{
+    coordinates: [number, number];
+    address: string;
+  } | null>(null);
 
   const handleNext = () => {
+    if (!selectedLocation) {
+      toast({
+        title: "Location required",
+        description: "Please select a location before proceeding",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Store location data for use in next steps
+    localStorage.setItem('reportLocation', JSON.stringify(selectedLocation));
     navigate("/report/photos");
+  };
+
+  const handleLocationSelect = (coordinates: [number, number], address: string) => {
+    setSelectedLocation({ coordinates, address });
   };
 
   return (
@@ -28,16 +50,20 @@ const LocationTracker = () => {
           />
         </div>
 
-        {/* Map Placeholder */}
-        <div className="bg-green-100 rounded-lg h-64 flex items-center justify-center border-2 border-blue-500">
-          <div className="text-center text-gray-600">
-            <div className="text-sm mb-2">Interactive Map</div>
-            <div className="text-xs">GPS location will be captured here</div>
-            <div className="text-xs mt-2 italic">
-              (Map integration available when location services are enabled)
+        <LocationMap 
+          searchLocation={searchLocation}
+          onLocationSelect={handleLocationSelect}
+        />
+
+        {selectedLocation && (
+          <div className="bg-primary/10 rounded-lg p-3">
+            <div className="text-sm font-medium text-primary">Selected Location:</div>
+            <div className="text-xs text-muted-foreground mt-1">{selectedLocation.address}</div>
+            <div className="text-xs text-muted-foreground">
+              {selectedLocation.coordinates[1].toFixed(6)}, {selectedLocation.coordinates[0].toFixed(6)}
             </div>
           </div>
-        </div>
+        )}
 
         <div className="pt-8">
           <Button 
