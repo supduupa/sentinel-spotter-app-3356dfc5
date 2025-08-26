@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { HeaderBar } from "@/components/ui/header-bar";
 import { MobileContainer } from "@/components/ui/mobile-container";
-import { ArrowRight, Camera } from "lucide-react";
+import { ArrowRight, ArrowLeft, Camera } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const PhotoCapture = () => {
@@ -11,6 +11,10 @@ const PhotoCapture = () => {
 
   const handleSubmit = () => {
     navigate("/report/confirmation");
+  };
+
+  const handleBack = () => {
+    navigate("/report/location");
   };
 
   const handlePhotoCapture = () => {
@@ -43,7 +47,15 @@ const PhotoCapture = () => {
           Tap the camera icon to capture evidence photos
         </div>
 
-        <div className="pt-8">
+        <div className="pt-8 space-y-3">
+          <Button 
+            variant="outline"
+            className="w-full flex items-center gap-2"
+            onClick={handleBack}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            BACK
+          </Button>
           <Button 
             variant="mobile"
             className="w-full flex items-center gap-2"
