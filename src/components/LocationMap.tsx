@@ -1,9 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { Button } from '@/components/ui/button';
 import { MapPin, Navigation } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+
+// Fix for default markers in Leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 interface LocationMapProps {
   searchLocation: string;
@@ -12,79 +20,55 @@ interface LocationMapProps {
 
 const LocationMap = ({ searchLocation, onLocationSelect }: LocationMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const marker = useRef<mapboxgl.Marker | null>(null);
-  const [mapboxToken, setMapboxToken] = useState('');
-  const [needsToken, setNeedsToken] = useState(true);
+  const map = useRef<L.Map | null>(null);
+  const marker = useRef<L.Marker | null>(null);
   const [currentLocation, setCurrentLocation] = useState<[number, number] | null>(null);
   const { toast } = useToast();
 
-  // Check for Mapbox token on mount
+  // Initialize map
   useEffect(() => {
-    // In a real Supabase project, you would get this from edge function secrets
-    // For now, we'll ask user to input their token
-    const token = localStorage.getItem('mapbox_token');
-    if (token) {
-      setMapboxToken(token);
-      setNeedsToken(false);
-    }
-  }, []);
+    if (!mapContainer.current) return;
 
-  // Initialize map when token is available
-  useEffect(() => {
-    if (!mapContainer.current || !mapboxToken || needsToken) return;
+    map.current = L.map(mapContainer.current).setView([40.7128, -74.0060], 10);
 
-    mapboxgl.accessToken = mapboxToken;
-    
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [-74.5, 40],
-      zoom: 9
-    });
-
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map.current);
 
     return () => {
       map.current?.remove();
     };
-  }, [mapboxToken, needsToken]);
+  }, []);
 
-  // Handle search location changes
+  // Handle search location changes using free Nominatim geocoding
   useEffect(() => {
-    if (!map.current || !searchLocation.trim() || !mapboxToken) return;
+    if (!map.current || !searchLocation.trim()) return;
 
     const searchForLocation = async () => {
       try {
         const response = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchLocation)}.json?access_token=${mapboxToken}&limit=1`
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchLocation)}&limit=1`
         );
         const data = await response.json();
 
-        if (data.features && data.features.length > 0) {
-          const feature = data.features[0];
-          const [lng, lat] = feature.center;
-          const address = feature.place_name;
+        if (data && data.length > 0) {
+          const result = data[0];
+          const lat = parseFloat(result.lat);
+          const lon = parseFloat(result.lon);
+          const address = result.display_name;
 
           // Update map center
-          map.current?.flyTo({
-            center: [lng, lat],
-            zoom: 14
-          });
+          map.current?.setView([lat, lon], 16);
 
           // Add or update marker
           if (marker.current) {
-            marker.current.remove();
+            map.current?.removeLayer(marker.current);
           }
           
-          marker.current = new mapboxgl.Marker({
-            color: '#3B82F6'
-          })
-            .setLngLat([lng, lat])
-            .addTo(map.current!);
+          marker.current = L.marker([lat, lon]).addTo(map.current!);
 
           // Call callback with location data
-          onLocationSelect?.([lng, lat], address);
+          onLocationSelect?.([lon, lat], address);
 
           toast({
             title: "Location found",
@@ -110,7 +94,7 @@ const LocationMap = ({ searchLocation, onLocationSelect }: LocationMapProps) => 
     // Debounce search
     const timeoutId = setTimeout(searchForLocation, 500);
     return () => clearTimeout(timeoutId);
-  }, [searchLocation, mapboxToken, onLocationSelect, toast]);
+  }, [searchLocation, onLocationSelect, toast]);
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -128,21 +112,14 @@ const LocationMap = ({ searchLocation, onLocationSelect }: LocationMapProps) => 
         setCurrentLocation([longitude, latitude]);
 
         if (map.current) {
-          map.current.flyTo({
-            center: [longitude, latitude],
-            zoom: 16
-          });
+          map.current.setView([latitude, longitude], 16);
 
           // Add current location marker
           if (marker.current) {
-            marker.current.remove();
+            map.current.removeLayer(marker.current);
           }
           
-          marker.current = new mapboxgl.Marker({
-            color: '#10B981'
-          })
-            .setLngLat([longitude, latitude])
-            .addTo(map.current);
+          marker.current = L.marker([latitude, longitude]).addTo(map.current);
 
           onLocationSelect?.([longitude, latitude], 'Current Location');
         }
@@ -162,44 +139,6 @@ const LocationMap = ({ searchLocation, onLocationSelect }: LocationMapProps) => 
       }
     );
   };
-
-  const handleTokenSubmit = () => {
-    if (mapboxToken.trim()) {
-      localStorage.setItem('mapbox_token', mapboxToken);
-      setNeedsToken(false);
-      toast({
-        title: "Token saved",
-        description: "Mapbox token has been saved",
-      });
-    }
-  };
-
-  if (needsToken) {
-    return (
-      <div className="bg-muted rounded-lg p-6 text-center space-y-4">
-        <MapPin className="w-12 h-12 mx-auto text-muted-foreground" />
-        <div>
-          <h3 className="font-semibold mb-2">Mapbox Token Required</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            Please enter your Mapbox public token to enable map functionality.
-            Get your token from <a href="https://mapbox.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">mapbox.com</a>
-          </p>
-          <div className="space-y-3">
-            <input
-              type="text"
-              placeholder="Enter your Mapbox public token"
-              value={mapboxToken}
-              onChange={(e) => setMapboxToken(e.target.value)}
-              className="w-full p-2 border rounded-md text-sm"
-            />
-            <Button onClick={handleTokenSubmit} size="sm">
-              Save Token
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">
