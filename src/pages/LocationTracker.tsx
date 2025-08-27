@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { HeaderBar } from "@/components/ui/header-bar";
 import { MobileContainer } from "@/components/ui/mobile-container";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import LocationMap from "@/components/LocationMap";
 import { useToast } from "@/hooks/use-toast";
@@ -30,6 +30,10 @@ const LocationTracker = () => {
     // Store location data for use in next steps
     localStorage.setItem('reportLocation', JSON.stringify(selectedLocation));
     navigate("/report/photos");
+  };
+
+  const handleBack = () => {
+    navigate("/report");
   };
 
   const handleLocationSelect = (coordinates: [number, number], address: string) => {
@@ -65,7 +69,15 @@ const LocationTracker = () => {
           </div>
         )}
 
-        <div className="pt-8">
+        <div className="pt-8 space-y-3">
+          <Button 
+            variant="outline"
+            className="w-full flex items-center gap-2"
+            onClick={handleBack}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            BACK
+          </Button>
           <Button 
             variant="mobile"
             className="w-full flex items-center gap-2"

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { HeaderBar } from "@/components/ui/header-bar";
 import { MobileContainer } from "@/components/ui/mobile-container";
-import { ArrowRight, MapPin } from "lucide-react";
+import { ArrowRight, ArrowLeft, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const ReportForm = () => {
@@ -21,6 +21,10 @@ const ReportForm = () => {
 
   const handleNext = () => {
     navigate("/report/location");
+  };
+
+  const handleBack = () => {
+    navigate("/");
   };
 
 
@@ -69,7 +73,15 @@ const ReportForm = () => {
           </Button>
         </div>
 
-        <div className="pt-8">
+        <div className="pt-8 space-y-3">
+          <Button 
+            variant="outline"
+            className="w-full flex items-center gap-2"
+            onClick={handleBack}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            BACK
+          </Button>
           <Button 
             variant="mobile"
             className="w-full flex items-center gap-2"
