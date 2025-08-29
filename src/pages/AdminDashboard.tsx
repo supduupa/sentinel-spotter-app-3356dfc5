@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { MapPin, Calendar, FileText, Image, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAdminNotifications } from "@/hooks/useAdminNotifications";
 
 interface Report {
   id: string;
@@ -37,6 +38,9 @@ const AdminDashboard = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState<'reports' | 'users'>('reports');
   const [loadingData, setLoadingData] = useState(true);
+
+  // Enable real-time notifications for admins
+  useAdminNotifications(isAdmin);
 
   useEffect(() => {
     if (!loading) {
