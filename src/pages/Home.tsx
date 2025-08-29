@@ -1,13 +1,38 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { HeaderBar } from "@/components/ui/header-bar";
 import { MobileContainer } from "@/components/ui/mobile-container";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { Settings } from "lucide-react";
 import environmentalDamage from "@/assets/environmental-damage.jpg";
 
 const Home = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      checkAdminStatus();
+    } else {
+      setIsAdmin(false);
+    }
+  }, [user]);
+
+  const checkAdminStatus = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase.rpc('is_admin', { _user_id: user.id });
+      if (error) throw error;
+      setIsAdmin(data || false);
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      setIsAdmin(false);
+    }
+  };
 
   const handleAuthAction = () => {
     if (user) {
@@ -58,6 +83,18 @@ const Home = () => {
             Report Galamsey
           </Button>
           
+          {/* Admin Dashboard Button */}
+          {user && isAdmin && (
+            <Button 
+              variant="default"
+              className="w-full flex items-center gap-2"
+              onClick={() => navigate("/admin")}
+            >
+              <Settings className="w-4 h-4" />
+              Admin Dashboard
+            </Button>
+          )}
+          
           {/* Auth Button */}
           <Button 
             variant="outline"
@@ -70,6 +107,7 @@ const Home = () => {
           {user && (
             <p className="text-center text-sm text-muted-foreground">
               Signed in as {user.email}
+              {isAdmin && " (Admin)"}
             </p>
           )}
         </div>

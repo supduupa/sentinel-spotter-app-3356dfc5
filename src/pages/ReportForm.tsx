@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -6,20 +6,42 @@ import { HeaderBar } from "@/components/ui/header-bar";
 import { MobileContainer } from "@/components/ui/mobile-container";
 import { ArrowRight, ArrowLeft, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const ReportForm = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     date: "",
     location: "",
     description: ""
   });
 
+  useEffect(() => {
+    // Load data from localStorage if returning from other steps
+    const savedData = localStorage.getItem('reportFormData');
+    if (savedData) {
+      setFormData(JSON.parse(savedData));
+    }
+  }, []);
+
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    const newData = { ...formData, [field]: value };
+    setFormData(newData);
+    // Save to localStorage
+    localStorage.setItem('reportFormData', JSON.stringify(newData));
   };
 
   const handleNext = () => {
+    if (!formData.date || !formData.location || !formData.description) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all fields before proceeding.",
+        variant: "destructive",
+      });
+      return;
+    }
     navigate("/report/location");
   };
 
