@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Home from "./pages/Home";
 import ReportForm from "./pages/ReportForm";
 import LocationTracker from "./pages/LocationTracker";
@@ -21,15 +22,15 @@ const App = () => (
         <Toaster />
         <Sonner />
         <Routes>
-          <Route path="/" element={<Home />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/report" element={<ReportForm />} />
-          <Route path="/report/location" element={<LocationTracker />} />
-          <Route path="/report/photos" element={<PhotoCapture />} />
-          <Route path="/report/confirmation" element={<Confirmation />} />
-          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+          <Route path="/report" element={<ProtectedRoute><ReportForm /></ProtectedRoute>} />
+          <Route path="/report/location" element={<ProtectedRoute><LocationTracker /></ProtectedRoute>} />
+          <Route path="/report/photos" element={<ProtectedRoute><PhotoCapture /></ProtectedRoute>} />
+          <Route path="/report/confirmation" element={<ProtectedRoute><Confirmation /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<ProtectedRoute><NotFound /></ProtectedRoute>} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
