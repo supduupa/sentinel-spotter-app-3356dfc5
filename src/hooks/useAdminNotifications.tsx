@@ -39,6 +39,9 @@ export const useAdminNotifications = (isAdmin: boolean) => {
             description: `Location: ${newReport.location}`,
             duration: 10000, // Show for 10 seconds
           });
+          
+          // Refresh the reports list to show the new report
+          window.location.reload();
         }
       )
       .subscribe();
