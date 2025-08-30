@@ -46,6 +46,11 @@ const LocationMap = ({ searchLocation, onLocationSelect }: LocationMapProps) => 
 
     const searchForLocation = async () => {
       try {
+        // Check if map is still valid before making API call
+        if (!map.current || !map.current.getContainer()) {
+          return;
+        }
+
         const response = await fetch(
           `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchLocation)}&limit=1`
         );
@@ -57,15 +62,20 @@ const LocationMap = ({ searchLocation, onLocationSelect }: LocationMapProps) => 
           const lon = parseFloat(result.lon);
           const address = result.display_name;
 
+          // Double-check map is still valid before updating
+          if (!map.current || !map.current.getContainer()) {
+            return;
+          }
+
           // Update map center
-          map.current?.setView([lat, lon], 16);
+          map.current.setView([lat, lon], 16);
 
           // Add or update marker
-          if (marker.current) {
-            map.current?.removeLayer(marker.current);
+          if (marker.current && map.current.hasLayer(marker.current)) {
+            map.current.removeLayer(marker.current);
           }
           
-          marker.current = L.marker([lat, lon]).addTo(map.current!);
+          marker.current = L.marker([lat, lon]).addTo(map.current);
 
           // Call callback with location data
           onLocationSelect?.([lon, lat], address);
