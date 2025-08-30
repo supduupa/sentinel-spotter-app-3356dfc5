@@ -9,7 +9,7 @@ interface RealtimePayload {
   old: any;
 }
 
-export const useAdminNotifications = (isAdmin: boolean) => {
+export const useAdminNotifications = (isAdmin: boolean, onNewReport?: () => void) => {
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -40,8 +40,8 @@ export const useAdminNotifications = (isAdmin: boolean) => {
             duration: 10000, // Show for 10 seconds
           });
           
-          // Refresh the reports list to show the new report
-          window.location.reload();
+          // Trigger report refresh callback
+          onNewReport?.();
         }
       )
       .subscribe();

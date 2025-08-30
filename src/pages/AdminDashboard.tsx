@@ -39,8 +39,29 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState<'reports' | 'users'>('reports');
   const [loadingData, setLoadingData] = useState(true);
 
+  const loadReports = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('galamsey_reports')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setReports(data || []);
+    } catch (error) {
+      console.error('Error loading reports:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load reports.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
   // Enable real-time notifications for admins
-  useAdminNotifications(isAdmin);
+  useAdminNotifications(isAdmin, loadReports);
 
   useEffect(() => {
     if (!loading) {
@@ -77,26 +98,6 @@ const AdminDashboard = () => {
     }
   };
 
-  const loadReports = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('galamsey_reports')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setReports(data || []);
-    } catch (error) {
-      console.error('Error loading reports:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load reports.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingData(false);
-    }
-  };
 
   const loadUsers = async () => {
     try {
