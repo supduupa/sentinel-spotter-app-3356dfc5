@@ -23,7 +23,7 @@ const PhotoCapture = () => {
     }
     
     // Store photos for use in confirmation
-    localStorage.setItem('reportPhotos', JSON.stringify(photos));
+    localStorage.setItem('capturedPhotos', JSON.stringify(photos));
     navigate("/report/confirmation");
   };
 
