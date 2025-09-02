@@ -6,10 +6,12 @@ import { ArrowLeft, CheckCircle, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 const Confirmation = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -23,6 +25,11 @@ const Confirmation = () => {
     setSubmitting(true);
     
     try {
+      // Check if user is authenticated
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       // Get data from localStorage
       const formData = JSON.parse(localStorage.getItem('reportFormData') || '{}');
       const locationData = JSON.parse(localStorage.getItem('selectedLocation') || '{}');
@@ -32,7 +39,7 @@ const Confirmation = () => {
         throw new Error('Missing form data');
       }
 
-      // Insert the report
+      // Insert the report with user_id
       const { error } = await supabase
         .from('galamsey_reports')
         .insert([
@@ -42,7 +49,8 @@ const Confirmation = () => {
             description: formData.description,
             gps_coordinates: locationData.coordinates || null,
             gps_address: locationData.address || null,
-            photos: photos || []
+            photos: photos || [],
+            user_id: user.id
           }
         ]);
 
