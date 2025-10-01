@@ -42,15 +42,10 @@ const LocationMap = ({ searchLocation, onLocationSelect }: LocationMapProps) => 
 
   // Handle search location changes using free Nominatim geocoding
   useEffect(() => {
-    if (!map.current || !searchLocation.trim()) return;
+    if (!searchLocation.trim()) return;
 
     const searchForLocation = async () => {
       try {
-        // Check if map is still valid before making API call
-        if (!map.current || !map.current.getContainer()) {
-          return;
-        }
-
         const response = await fetch(
           `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchLocation)}&limit=1`
         );
@@ -62,20 +57,33 @@ const LocationMap = ({ searchLocation, onLocationSelect }: LocationMapProps) => 
           const lon = parseFloat(result.lon);
           const address = result.display_name;
 
-          // Double-check map is still valid before updating
-          if (!map.current || !map.current.getContainer()) {
+          // Check if map is still valid and mounted before updating
+          const mapInstance = map.current;
+          if (!mapInstance) return;
+          
+          try {
+            // Safely check if map container exists
+            mapInstance.getContainer();
+          } catch (e) {
+            // Map has been destroyed, don't proceed
             return;
           }
 
           // Update map center
-          map.current.setView([lat, lon], 16);
+          mapInstance.setView([lat, lon], 16);
 
           // Add or update marker
-          if (marker.current && map.current.hasLayer(marker.current)) {
-            map.current.removeLayer(marker.current);
+          if (marker.current) {
+            try {
+              if (mapInstance.hasLayer(marker.current)) {
+                mapInstance.removeLayer(marker.current);
+              }
+            } catch (e) {
+              // Ignore errors when removing old marker
+            }
           }
           
-          marker.current = L.marker([lat, lon]).addTo(map.current);
+          marker.current = L.marker([lat, lon]).addTo(mapInstance);
 
           // Call callback with location data
           onLocationSelect?.([lon, lat], address);
