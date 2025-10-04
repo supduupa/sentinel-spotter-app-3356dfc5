@@ -14,98 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
-      attendance: {
+      galamsey_reports: {
         Row: {
           created_at: string
           date: string
+          description: string
+          gps_address: string | null
+          gps_coordinates: Json | null
           id: string
-          note: string | null
-          status: Database["public"]["Enums"]["attendance_status"]
-          student_id: string
+          location: string
+          photos: string[] | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
           date: string
+          description: string
+          gps_address?: string | null
+          gps_coordinates?: Json | null
           id?: string
-          note?: string | null
-          status?: Database["public"]["Enums"]["attendance_status"]
-          student_id: string
+          location: string
+          photos?: string[] | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
           date?: string
+          description?: string
+          gps_address?: string | null
+          gps_coordinates?: Json | null
           id?: string
-          note?: string | null
-          status?: Database["public"]["Enums"]["attendance_status"]
-          student_id?: string
+          location?: string
+          photos?: string[] | null
           updated_at?: string
+          user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "attendance_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "students"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       profiles: {
         Row: {
           created_at: string
           email: string | null
-          full_name: string
+          full_name: string | null
           id: string
-          role: Database["public"]["Enums"]["app_role"]
           updated_at: string
+          user_id: string
         }
         Insert: {
           created_at?: string
           email?: string | null
-          full_name: string
-          id: string
-          role?: Database["public"]["Enums"]["app_role"]
+          full_name?: string | null
+          id?: string
           updated_at?: string
+          user_id: string
         }
         Update: {
           created_at?: string
           email?: string | null
-          full_name?: string
+          full_name?: string | null
           id?: string
-          role?: Database["public"]["Enums"]["app_role"]
           updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
-      students: {
+      user_roles: {
         Row: {
           created_at: string
-          email: string | null
-          full_name: string
           id: string
-          phone: string | null
-          student_id: string
-          updated_at: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
         }
         Insert: {
           created_at?: string
-          email?: string | null
-          full_name: string
           id?: string
-          phone?: string | null
-          student_id: string
-          updated_at?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
         }
         Update: {
           created_at?: string
-          email?: string | null
-          full_name?: string
           id?: string
-          phone?: string | null
-          student_id?: string
-          updated_at?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -114,18 +106,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_current_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: Database["public"]["Enums"]["app_role"]
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
       }
-      is_staff_user: {
-        Args: Record<PropertyKey, never>
+      is_admin: {
+        Args: { _user_id: string }
         Returns: boolean
       }
     }
     Enums: {
-      app_role: "Teacher" | "CourseRep" | "Student"
-      attendance_status: "Present" | "Absent" | "Late" | "Excused"
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -253,8 +247,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["Teacher", "CourseRep", "Student"],
-      attendance_status: ["Present", "Absent", "Late", "Excused"],
+      app_role: ["admin", "user"],
     },
   },
 } as const
