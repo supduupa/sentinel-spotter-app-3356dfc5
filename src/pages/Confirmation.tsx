@@ -68,7 +68,9 @@ const Confirmation = () => {
       });
 
     } catch (error) {
-      console.error('Error submitting report:', error);
+      if (import.meta.env.DEV) {
+        console.error('Error submitting report:', error);
+      }
       toast({
         title: "Error",
         description: "Failed to submit report. Please try again.",

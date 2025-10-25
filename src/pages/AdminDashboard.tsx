@@ -49,7 +49,9 @@ const AdminDashboard = () => {
       if (error) throw error;
       setReports(data || []);
     } catch (error) {
-      console.error('Error loading reports:', error);
+      if (import.meta.env.DEV) {
+        console.error('Error loading reports:', error);
+      }
       toast({
         title: "Error",
         description: "Failed to load reports.",
@@ -93,7 +95,9 @@ const AdminDashboard = () => {
         navigate('/');
       }
     } catch (error) {
-      console.error('Error checking admin status:', error);
+      if (import.meta.env.DEV) {
+        console.error('Error checking admin status:', error);
+      }
       navigate('/');
     }
   };
@@ -122,7 +126,9 @@ const AdminDashboard = () => {
 
       setUsers(usersWithRoles);
     } catch (error) {
-      console.error('Error loading users:', error);
+      if (import.meta.env.DEV) {
+        console.error('Error loading users:', error);
+      }
       toast({
         title: "Error",
         description: "Failed to load users.",
@@ -154,7 +160,9 @@ const AdminDashboard = () => {
       
       loadUsers();
     } catch (error) {
-      console.error('Error updating user role:', error);
+      if (import.meta.env.DEV) {
+        console.error('Error updating user role:', error);
+      }
       toast({
         title: "Error",
         description: "Failed to update user role.",
@@ -179,7 +187,9 @@ const AdminDashboard = () => {
       
       loadReports();
     } catch (error) {
-      console.error('Error deleting report:', error);
+      if (import.meta.env.DEV) {
+        console.error('Error deleting report:', error);
+      }
       toast({
         title: "Error",
         description: "Failed to delete report.",
