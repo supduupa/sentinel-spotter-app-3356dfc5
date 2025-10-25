@@ -61,11 +61,9 @@ const LocationMap = ({ searchLocation, onLocationSelect }: LocationMapProps) => 
           const mapInstance = map.current;
           if (!mapInstance) return;
           
-          try {
-            // Safely check if map container exists
-            mapInstance.getContainer();
-          } catch (e) {
-            // Map has been destroyed, don't proceed
+          // Check if the map container is still in the DOM
+          const container = mapInstance.getContainer();
+          if (!container || !document.contains(container)) {
             return;
           }
 
@@ -74,12 +72,8 @@ const LocationMap = ({ searchLocation, onLocationSelect }: LocationMapProps) => 
 
           // Add or update marker
           if (marker.current) {
-            try {
-              if (mapInstance.hasLayer(marker.current)) {
-                mapInstance.removeLayer(marker.current);
-              }
-            } catch (e) {
-              // Ignore errors when removing old marker
+            if (mapInstance.hasLayer(marker.current)) {
+              mapInstance.removeLayer(marker.current);
             }
           }
           
@@ -100,12 +94,17 @@ const LocationMap = ({ searchLocation, onLocationSelect }: LocationMapProps) => 
           });
         }
       } catch (error) {
-        console.error('Geocoding error:', error);
-        toast({
-          title: "Search error",
-          description: "Unable to search for location",
-          variant: "destructive",
-        });
+        if (import.meta.env.DEV) {
+          console.error('Geocoding error:', error);
+        }
+        // Only show user-facing error if it's not a map lifecycle issue
+        if (!(error instanceof TypeError && error.message.includes('_leaflet'))) {
+          toast({
+            title: "Search error",
+            description: "Unable to search for location",
+            variant: "destructive",
+          });
+        }
       }
     };
 
