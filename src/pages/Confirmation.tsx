@@ -121,13 +121,22 @@ const Confirmation = () => {
           )}
         </div>
 
-        <div className="w-full pt-8">
+        <div className="w-full pt-8 space-y-3">
+          {!submitted && !submitting && (
+            <Button 
+              variant="outline"
+              className="w-full flex items-center gap-2"
+              onClick={() => navigate(-1)}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              GO BACK
+            </Button>
+          )}
           <Button 
             variant="mobile"
             className="w-full flex items-center gap-2"
             onClick={handleDone}
           >
-            <ArrowLeft className="w-4 h-4" />
             DONE
           </Button>
         </div>
