@@ -6,6 +6,9 @@ import { ArrowRight, ArrowLeft, Camera, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
+const MAX_PHOTOS = 10;
+const MAX_PHOTO_SIZE_MB = 5;
+
 const PhotoCapture = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -38,15 +41,43 @@ const PhotoCapture = () => {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
+      // Check photo limit
+      if (photos.length + files.length > MAX_PHOTOS) {
+        toast({
+          title: "Too many photos",
+          description: `Maximum ${MAX_PHOTOS} photos allowed.`,
+          variant: "destructive",
+        });
+        return;
+      }
+
       Array.from(files).forEach(file => {
-        if (file.type.startsWith('image/')) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const result = e.target?.result as string;
-            setPhotos(prev => [...prev, result]);
-          };
-          reader.readAsDataURL(file);
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          toast({
+            title: "Invalid file type",
+            description: "Please select image files only.",
+            variant: "destructive",
+          });
+          return;
         }
+
+        // Validate file size (5MB limit)
+        if (file.size > MAX_PHOTO_SIZE_MB * 1024 * 1024) {
+          toast({
+            title: "File too large",
+            description: `Photo must be less than ${MAX_PHOTO_SIZE_MB}MB.`,
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          setPhotos(prev => [...prev, result]);
+        };
+        reader.readAsDataURL(file);
       });
     }
   };
