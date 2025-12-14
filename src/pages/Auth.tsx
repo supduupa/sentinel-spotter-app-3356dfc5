@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { HeaderBar } from "@/components/ui/header-bar";
 import { MobileContainer } from "@/components/ui/mobile-container";
 import { Eye, EyeOff } from "lucide-react";
+import { authSchema } from "@/lib/validations";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -32,14 +33,27 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate input with zod
+    const validationResult = authSchema.safeParse({ email, password });
+    if (!validationResult.success) {
+      const firstError = validationResult.error.errors[0];
+      toast({
+        title: "Validation Error",
+        description: firstError.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
       const redirectUrl = `${window.location.origin}/`;
       
       const { error } = await supabase.auth.signUp({
-        email,
-        password,
+        email: validationResult.data.email,
+        password: validationResult.data.password,
         options: {
           emailRedirectTo: redirectUrl
         }
@@ -78,12 +92,25 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate input with zod
+    const validationResult = authSchema.safeParse({ email, password });
+    if (!validationResult.success) {
+      const firstError = validationResult.error.errors[0];
+      toast({
+        title: "Validation Error",
+        description: firstError.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: validationResult.data.email,
+        password: validationResult.data.password,
       });
 
       if (error) {

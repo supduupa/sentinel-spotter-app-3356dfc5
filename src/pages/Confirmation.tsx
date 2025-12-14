@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { reportSubmissionSchema, photosSchema } from "@/lib/validations";
 
 const Confirmation = () => {
   const navigate = useNavigate();
@@ -35,24 +36,42 @@ const Confirmation = () => {
       const locationData = JSON.parse(localStorage.getItem('selectedLocation') || '{}');
       const photos = JSON.parse(localStorage.getItem('capturedPhotos') || '[]');
 
-      if (!formData.date || !formData.location || !formData.description) {
-        throw new Error('Missing form data');
+      // Validate photos
+      const photosValidation = photosSchema.safeParse(photos);
+      if (!photosValidation.success) {
+        const firstError = photosValidation.error.errors[0];
+        throw new Error(firstError.message);
       }
 
-      // Insert the report with user_id
+      // Prepare and validate the full submission
+      const submissionData = {
+        date: formData.date,
+        location: formData.location,
+        description: formData.description,
+        gps_coordinates: locationData.coordinates || null,
+        gps_address: locationData.address || null,
+        photos: photosValidation.data,
+        user_id: user.id
+      };
+
+      const validationResult = reportSubmissionSchema.safeParse(submissionData);
+      if (!validationResult.success) {
+        const firstError = validationResult.error.errors[0];
+        throw new Error(firstError.message);
+      }
+
+      // Insert the validated report - use explicit object to satisfy TypeScript
       const { error } = await supabase
         .from('galamsey_reports')
-        .insert([
-          {
-            date: formData.date,
-            location: formData.location,
-            description: formData.description,
-            gps_coordinates: locationData.coordinates || null,
-            gps_address: locationData.address || null,
-            photos: photos || [],
-            user_id: user.id
-          }
-        ]);
+        .insert([{
+          date: validationResult.data.date,
+          location: validationResult.data.location,
+          description: validationResult.data.description,
+          gps_coordinates: validationResult.data.gps_coordinates,
+          gps_address: validationResult.data.gps_address,
+          photos: validationResult.data.photos,
+          user_id: validationResult.data.user_id
+        }]);
 
       if (error) throw error;
 
@@ -73,7 +92,7 @@ const Confirmation = () => {
       }
       toast({
         title: "Error",
-        description: "Failed to submit report. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to submit report. Please try again.",
         variant: "destructive",
       });
     } finally {

@@ -6,8 +6,8 @@ import { HeaderBar } from "@/components/ui/header-bar";
 import { MobileContainer } from "@/components/ui/mobile-container";
 import { ArrowRight, ArrowLeft, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { reportFormSchema } from "@/lib/validations";
 
 const ReportForm = () => {
   const navigate = useNavigate();
@@ -34,14 +34,20 @@ const ReportForm = () => {
   };
 
   const handleNext = () => {
-    if (!formData.date || !formData.location || !formData.description) {
+    // Validate form data with zod
+    const validationResult = reportFormSchema.safeParse(formData);
+    if (!validationResult.success) {
+      const firstError = validationResult.error.errors[0];
       toast({
-        title: "Missing Information",
-        description: "Please fill in all fields before proceeding.",
+        title: "Validation Error",
+        description: firstError.message,
         variant: "destructive",
       });
       return;
     }
+    
+    // Save validated data to localStorage
+    localStorage.setItem('reportFormData', JSON.stringify(validationResult.data));
     navigate("/report/location");
   };
 
