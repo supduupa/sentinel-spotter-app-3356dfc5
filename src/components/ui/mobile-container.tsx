@@ -8,7 +8,13 @@ interface MobileContainerProps {
 export const MobileContainer = ({ children, className }: MobileContainerProps) => {
   return (
     <div className={cn(
-      "max-w-sm mx-auto min-h-screen bg-background",
+      "min-h-screen bg-background",
+      // Mobile: full width
+      "w-full",
+      // Tablet: centered with padding
+      "md:max-w-2xl md:mx-auto",
+      // Desktop: max width container
+      "lg:max-w-4xl xl:max-w-5xl",
       className
     )}>
       {children}

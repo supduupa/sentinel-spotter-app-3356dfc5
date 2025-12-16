@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { HeaderBar } from "@/components/ui/header-bar";
 import { MobileContainer } from "@/components/ui/mobile-container";
-import { ArrowLeft, CheckCircle, AlertCircle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { ArrowLeft, CheckCircle, AlertCircle, Loader2, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -118,60 +119,79 @@ const Confirmation = () => {
 
   return (
     <MobileContainer>
-      <HeaderBar title="CONFIRMATION" />
+      <HeaderBar title="Confirmation" />
       
-      <div className="p-6 flex flex-col items-center justify-center min-h-96 space-y-8">
-        <div className="text-center">
+      <main className="p-4 md:p-6 lg:p-8 flex flex-col items-center justify-center min-h-[calc(100vh-64px)] animate-fade-in">
+        <div className="w-full max-w-md">
           {submitting ? (
-            <div>
-              <div className="animate-spin w-16 h-16 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-              <div className="border-2 border-yellow-500 border-dashed rounded-lg p-8 bg-yellow-50">
-                <div className="text-center text-gray-700 font-medium">
-                  Submitting your report...
+            <Card className="shadow-soft">
+              <CardContent className="p-8 text-center">
+                <div className="mb-6">
+                  <Loader2 className="w-16 h-16 text-primary mx-auto animate-spin" />
                 </div>
-              </div>
-            </div>
+                <h2 className="font-display font-bold text-xl mb-2">Submitting Report</h2>
+                <p className="text-muted-foreground">
+                  Please wait while we process your report...
+                </p>
+              </CardContent>
+            </Card>
           ) : submitted ? (
-            <div>
-              <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-              <div className="border-2 border-green-500 border-dashed rounded-lg p-8 bg-green-50">
-                <div className="text-center text-gray-700 font-medium">
-                  Your report has been submitted successfully!
+            <Card className="shadow-soft border-success/30">
+              <CardContent className="p-8 text-center">
+                <div className="mb-6">
+                  <div className="w-20 h-20 rounded-full bg-success/10 flex items-center justify-center mx-auto animate-scale-in">
+                    <CheckCircle className="w-12 h-12 text-success" />
+                  </div>
                 </div>
-              </div>
-            </div>
+                <h2 className="font-display font-bold text-xl mb-2 text-success">Report Submitted!</h2>
+                <p className="text-muted-foreground mb-6">
+                  Thank you for helping protect our environment. Your report has been received and will be reviewed by our team.
+                </p>
+                <Button 
+                  size="lg"
+                  className="w-full h-12 font-semibold gradient-primary hover:opacity-90 transition-opacity"
+                  onClick={handleDone}
+                >
+                  <Home className="w-4 h-4 mr-2" />
+                  Return Home
+                </Button>
+              </CardContent>
+            </Card>
           ) : (
-            <div>
-              <AlertCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
-              <div className="border-2 border-red-500 border-dashed rounded-lg p-8 bg-red-50">
-                <div className="text-center text-gray-700 font-medium">
-                  Failed to submit report. Please try again.
+            <Card className="shadow-soft border-destructive/30">
+              <CardContent className="p-8 text-center">
+                <div className="mb-6">
+                  <div className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
+                    <AlertCircle className="w-12 h-12 text-destructive" />
+                  </div>
                 </div>
-              </div>
-            </div>
+                <h2 className="font-display font-bold text-xl mb-2 text-destructive">Submission Failed</h2>
+                <p className="text-muted-foreground mb-6">
+                  We couldn't submit your report. Please check your connection and try again.
+                </p>
+                <div className="space-y-3">
+                  <Button 
+                    variant="outline"
+                    size="lg"
+                    className="w-full h-12"
+                    onClick={() => navigate(-1)}
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Go Back
+                  </Button>
+                  <Button 
+                    size="lg"
+                    className="w-full h-12 font-semibold"
+                    onClick={handleDone}
+                  >
+                    Return Home
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </div>
-
-        <div className="w-full pt-8 space-y-3">
-          {!submitted && !submitting && (
-            <Button 
-              variant="outline"
-              className="w-full flex items-center gap-2"
-              onClick={() => navigate(-1)}
-            >
-              <ArrowLeft className="w-4 h-4" />
-              GO BACK
-            </Button>
-          )}
-          <Button 
-            variant="mobile"
-            className="w-full flex items-center gap-2"
-            onClick={handleDone}
-          >
-            DONE
-          </Button>
-        </div>
-      </div>
+      </main>
     </MobileContainer>
   );
 };
