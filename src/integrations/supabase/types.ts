@@ -16,11 +16,15 @@ export type Database = {
     Tables: {
       galamsey_reports: {
         Row: {
+          ai_category: string | null
+          ai_summary: string | null
           created_at: string
           date: string
           description: string
           gps_address: string | null
           gps_coordinates: Json | null
+          gps_lat: number | null
+          gps_long: number | null
           id: string
           location: string
           photos: string[] | null
@@ -28,11 +32,15 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          ai_category?: string | null
+          ai_summary?: string | null
           created_at?: string
           date: string
           description: string
           gps_address?: string | null
           gps_coordinates?: Json | null
+          gps_lat?: number | null
+          gps_long?: number | null
           id?: string
           location: string
           photos?: string[] | null
@@ -40,11 +48,15 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          ai_category?: string | null
+          ai_summary?: string | null
           created_at?: string
           date?: string
           description?: string
           gps_address?: string | null
           gps_coordinates?: Json | null
+          gps_lat?: number | null
+          gps_long?: number | null
           id?: string
           location?: string
           photos?: string[] | null
