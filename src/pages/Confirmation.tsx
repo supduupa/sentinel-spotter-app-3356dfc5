@@ -61,7 +61,7 @@ const Confirmation = () => {
       }
 
       // Insert the validated report - use explicit object to satisfy TypeScript
-      const { error } = await supabase
+      const { data: report, error } = await supabase
         .from('galamsey_reports')
         .insert([{
           date: validationResult.data.date,
@@ -71,9 +71,21 @@ const Confirmation = () => {
           gps_address: validationResult.data.gps_address,
           photos: validationResult.data.photos,
           user_id: validationResult.data.user_id
-        }]);
+        }])
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Call AI processing edge function
+      try {
+        await supabase.functions.invoke('process-report', {
+          body: { reportId: report.id, description: validationResult.data.description },
+        });
+      } catch (aiErr) {
+        console.error('AI processing error:', aiErr);
+        // Don't fail the submission if AI processing fails
+      }
 
       // Clear localStorage
       localStorage.removeItem('reportFormData');
