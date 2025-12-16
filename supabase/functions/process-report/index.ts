@@ -44,7 +44,7 @@ Respond in this exact JSON format only:
 {"summary": "your one sentence summary here", "category": "one of the four categories"}`;
 
     const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${googleApiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${googleApiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
