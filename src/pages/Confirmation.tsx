@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { HeaderBar } from "@/components/ui/header-bar";
 import { MobileContainer } from "@/components/ui/mobile-container";
@@ -16,8 +16,12 @@ const Confirmation = () => {
   const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const hasSubmittedRef = useRef(false);
 
   useEffect(() => {
+    // Prevent duplicate submissions in React strict mode
+    if (hasSubmittedRef.current) return;
+    hasSubmittedRef.current = true;
     submitReport();
   }, []);
 
