@@ -147,7 +147,9 @@ const LocationMap = ({ searchLocation, onLocationSelect }: LocationMapProps) => 
         });
       },
       (error) => {
-        console.error('Geolocation error:', error);
+        if (import.meta.env.DEV) {
+          console.error('Geolocation error:', error);
+        }
         toast({
           title: "GPS error",
           description: "Unable to get your current location",

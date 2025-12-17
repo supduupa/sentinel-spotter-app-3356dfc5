@@ -29,8 +29,8 @@ const LocationTracker = () => {
       return;
     }
     
-    // Store location data for use in next steps
-    localStorage.setItem('reportLocation', JSON.stringify(selectedLocation));
+    // Store location data for use in next steps (sessionStorage - more secure)
+    sessionStorage.setItem('reportLocation', JSON.stringify(selectedLocation));
     navigate("/report/photos");
   };
 

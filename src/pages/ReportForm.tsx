@@ -21,8 +21,8 @@ const ReportForm = () => {
   });
 
   useEffect(() => {
-    // Load data from localStorage if returning from other steps
-    const savedData = localStorage.getItem('reportFormData');
+    // Load data from sessionStorage if returning from other steps
+    const savedData = sessionStorage.getItem('reportFormData');
     if (savedData) {
       setFormData(JSON.parse(savedData));
     }
@@ -31,8 +31,8 @@ const ReportForm = () => {
   const handleInputChange = (field: string, value: string) => {
     const newData = { ...formData, [field]: value };
     setFormData(newData);
-    // Save to localStorage
-    localStorage.setItem('reportFormData', JSON.stringify(newData));
+    // Save to sessionStorage (more secure - cleared when tab closes)
+    sessionStorage.setItem('reportFormData', JSON.stringify(newData));
   };
 
   const handleNext = () => {
@@ -48,8 +48,8 @@ const ReportForm = () => {
       return;
     }
     
-    // Save validated data to localStorage
-    localStorage.setItem('reportFormData', JSON.stringify(validationResult.data));
+    // Save validated data to sessionStorage
+    sessionStorage.setItem('reportFormData', JSON.stringify(validationResult.data));
     navigate("/report/location");
   };
 

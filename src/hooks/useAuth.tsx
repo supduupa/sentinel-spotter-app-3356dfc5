@@ -37,10 +37,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const signOut = async () => {
-    // Clear localStorage on sign out for security
-    localStorage.removeItem('reportFormData');
-    localStorage.removeItem('selectedLocation');
-    localStorage.removeItem('capturedPhotos');
+    // Clear sessionStorage on sign out for security
+    sessionStorage.removeItem('reportFormData');
+    sessionStorage.removeItem('reportLocation');
+    sessionStorage.removeItem('capturedPhotos');
     
     await supabase.auth.signOut();
   };

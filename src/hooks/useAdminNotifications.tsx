@@ -18,7 +18,9 @@ export const useAdminNotifications = (isAdmin: boolean, onNewReport?: () => void
       return;
     }
 
-    console.log('Setting up admin notifications for user:', user.id);
+    if (import.meta.env.DEV) {
+      console.log('Setting up admin notifications for user:', user.id);
+    }
 
     // Subscribe to real-time changes on galamsey_reports table
     const channel = supabase
@@ -31,7 +33,9 @@ export const useAdminNotifications = (isAdmin: boolean, onNewReport?: () => void
           table: 'galamsey_reports'
         },
         (payload: RealtimePayload) => {
-          console.log('New report received:', payload);
+          if (import.meta.env.DEV) {
+            console.log('New report received:', payload);
+          }
           
           const newReport = payload.new;
           toast({
@@ -47,7 +51,9 @@ export const useAdminNotifications = (isAdmin: boolean, onNewReport?: () => void
       .subscribe();
 
     return () => {
-      console.log('Cleaning up admin notifications');
+      if (import.meta.env.DEV) {
+        console.log('Cleaning up admin notifications');
+      }
       supabase.removeChannel(channel);
     };
   }, [isAdmin, user, toast]);
