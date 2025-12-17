@@ -26,8 +26,8 @@ const PhotoCapture = () => {
       return;
     }
     
-    // Store photos for use in confirmation
-    localStorage.setItem('capturedPhotos', JSON.stringify(photos));
+    // Store photos for use in confirmation (sessionStorage - more secure)
+    sessionStorage.setItem('capturedPhotos', JSON.stringify(photos));
     navigate("/report/confirmation");
   };
 

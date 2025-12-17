@@ -32,10 +32,10 @@ const Confirmation = () => {
         throw new Error('User not authenticated');
       }
 
-      // Get data from localStorage
-      const formData = JSON.parse(localStorage.getItem('reportFormData') || '{}');
-      const locationData = JSON.parse(localStorage.getItem('selectedLocation') || '{}');
-      const photos = JSON.parse(localStorage.getItem('capturedPhotos') || '[]');
+      // Get data from sessionStorage
+      const formData = JSON.parse(sessionStorage.getItem('reportFormData') || '{}');
+      const locationData = JSON.parse(sessionStorage.getItem('reportLocation') || '{}');
+      const photos = JSON.parse(sessionStorage.getItem('capturedPhotos') || '[]');
 
       // Validate photos
       const photosValidation = photosSchema.safeParse(photos);
@@ -84,14 +84,16 @@ const Confirmation = () => {
           body: { reportId: report.id, description: validationResult.data.description },
         });
       } catch (aiErr) {
-        console.error('AI processing error:', aiErr);
+        if (import.meta.env.DEV) {
+          console.error('AI processing error:', aiErr);
+        }
         // Don't fail the submission if AI processing fails
       }
 
-      // Clear localStorage
-      localStorage.removeItem('reportFormData');
-      localStorage.removeItem('selectedLocation');
-      localStorage.removeItem('capturedPhotos');
+      // Clear sessionStorage
+      sessionStorage.removeItem('reportFormData');
+      sessionStorage.removeItem('reportLocation');
+      sessionStorage.removeItem('capturedPhotos');
 
       setSubmitted(true);
       toast({

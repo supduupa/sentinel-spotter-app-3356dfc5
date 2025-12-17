@@ -1,8 +1,21 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+// Restrict CORS to specific allowed origins for security
+const getAllowedOrigin = () => {
+  const allowedOrigins = [
+    'https://szisowtjjhcssdzrxnse.lovable.app',
+    'https://szisowtjjhcssdzrxnse.supabase.co',
+  ];
+  // In development, allow localhost
+  if (Deno.env.get('DENO_ENV') === 'development') {
+    allowedOrigins.push('http://localhost:5173', 'http://localhost:3000');
+  }
+  return allowedOrigins;
+};
+
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': getAllowedOrigin()[0],
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
