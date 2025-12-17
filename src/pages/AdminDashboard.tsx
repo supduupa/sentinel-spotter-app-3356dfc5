@@ -2,16 +2,19 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { HeaderBar } from "@/components/ui/header-bar";
 import { MobileContainer } from "@/components/ui/mobile-container";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { MapPin, Calendar, FileText, Image, User, Filter, Brain, Droplets, Trees, Mountain, HelpCircle, Trash2, Shield, Loader2 } from "lucide-react";
+import { MapPin, Calendar, FileText, Image, User, Filter, Brain, Droplets, Trees, Mountain, HelpCircle, Trash2, Shield, Loader2, CalendarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { useAdminNotifications } from "@/hooks/useAdminNotifications";
 
 interface Report {
@@ -75,8 +78,8 @@ const AdminDashboard = () => {
   
   // Filters
   const [categoryFilter, setCategoryFilter] = useState('All');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
 
   const loadReports = async () => {
     try {
@@ -246,8 +249,8 @@ const AdminDashboard = () => {
           if (report.ai_category !== categoryFilter) return false;
         }
       }
-      if (dateFrom && new Date(report.date) < new Date(dateFrom)) return false;
-      if (dateTo && new Date(report.date) > new Date(dateTo)) return false;
+      if (dateFrom && new Date(report.date) < dateFrom) return false;
+      if (dateTo && new Date(report.date) > dateTo) return false;
       return true;
     });
   }, [reports, categoryFilter, dateFrom, dateTo]);
@@ -331,21 +334,55 @@ const AdminDashboard = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label className="text-xs text-muted-foreground">From Date</Label>
-                    <Input 
-                      type="date" 
-                      value={dateFrom} 
-                      onChange={(e) => setDateFrom(e.target.value)} 
-                      className="h-10 mt-1" 
-                    />
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full h-10 mt-1 justify-start text-left font-normal",
+                            !dateFrom && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {dateFrom ? format(dateFrom, "PPP") : <span>Pick date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={dateFrom}
+                          onSelect={setDateFrom}
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
                   <div>
                     <Label className="text-xs text-muted-foreground">To Date</Label>
-                    <Input 
-                      type="date" 
-                      value={dateTo} 
-                      onChange={(e) => setDateTo(e.target.value)} 
-                      className="h-10 mt-1" 
-                    />
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full h-10 mt-1 justify-start text-left font-normal",
+                            !dateTo && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {dateTo ? format(dateTo, "PPP") : <span>Pick date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={dateTo}
+                          onSelect={setDateTo}
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 </div>
               </CardContent>
