@@ -45,11 +45,16 @@ const Confirmation = () => {
       }
 
       // Prepare and validate the full submission
+      // Transform coordinates array [lng, lat] to object {lat, lng}
+      const gpsCoordinates = locationData.coordinates 
+        ? { lat: locationData.coordinates[1], lng: locationData.coordinates[0] }
+        : null;
+      
       const submissionData = {
         date: formData.date,
         location: formData.location,
         description: formData.description,
-        gps_coordinates: locationData.coordinates || null,
+        gps_coordinates: gpsCoordinates,
         gps_address: locationData.address || null,
         photos: photosValidation.data,
         user_id: user.id
