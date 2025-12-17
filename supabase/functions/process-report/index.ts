@@ -1,21 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// Restrict CORS to specific allowed origins for security
-const getAllowedOrigin = () => {
-  const allowedOrigins = [
-    'https://szisowtjjhcssdzrxnse.lovable.app',
-    'https://szisowtjjhcssdzrxnse.supabase.co',
-  ];
-  // In development, allow localhost
-  if (Deno.env.get('DENO_ENV') === 'development') {
-    allowedOrigins.push('http://localhost:5173', 'http://localhost:3000');
-  }
-  return allowedOrigins;
-};
-
 const corsHeaders = {
-  'Access-Control-Allow-Origin': getAllowedOrigin()[0],
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
@@ -89,18 +76,18 @@ serve(async (req) => {
       );
     }
 
-    const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
-    if (!googleApiKey) {
-      console.error('GOOGLE_API_KEY not configured');
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!lovableApiKey) {
+      console.error('LOVABLE_API_KEY not configured');
       return new Response(
-        JSON.stringify({ error: 'GOOGLE_API_KEY not configured' }),
+        JSON.stringify({ error: 'LOVABLE_API_KEY not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     console.log('Processing report:', reportId);
 
-    // Call Gemini API
+    // Call Lovable AI Gateway
     const prompt = `You are analyzing an illegal mining (galamsey) report. Based on the following description, provide:
 1. A one-sentence summary of the report
 2. A category classification from these options ONLY: "Water Pollution", "Forest Destruction", "Mining Pits", or "Other"
@@ -110,36 +97,50 @@ Report description: "${description}"
 Respond in this exact JSON format only:
 {"summary": "your one sentence summary here", "category": "one of the four categories"}`;
 
-    const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${googleApiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.3,
-            maxOutputTokens: 256,
-          },
-        }),
-      }
-    );
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${lovableApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          { role: 'system', content: 'You are a helpful assistant that analyzes environmental reports and responds with JSON only.' },
+          { role: 'user', content: prompt }
+        ],
+      }),
+    });
 
-    if (!geminiResponse.ok) {
-      const errorText = await geminiResponse.text();
-      console.error('Gemini API error:', geminiResponse.status, errorText);
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text();
+      console.error('Lovable AI Gateway error:', aiResponse.status, errorText);
+      
+      if (aiResponse.status === 429) {
+        return new Response(
+          JSON.stringify({ error: 'Rate limit exceeded, please try again later' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if (aiResponse.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'AI credits exhausted, please add funds' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
       return new Response(
         JSON.stringify({ error: 'Failed to process with AI' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const geminiData = await geminiResponse.json();
-    console.log('Gemini response:', JSON.stringify(geminiData));
+    const aiData = await aiResponse.json();
+    console.log('AI response:', JSON.stringify(aiData));
 
-    const responseText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const responseText = aiData.choices?.[0]?.message?.content || '';
     
-    // Parse the JSON response from Gemini
+    // Parse the JSON response
     let aiSummary = 'Unable to generate summary';
     let aiCategory = 'Other';
     
@@ -158,7 +159,7 @@ Respond in this exact JSON format only:
         }
       }
     } catch (parseError) {
-      console.error('Error parsing Gemini response:', parseError);
+      console.error('Error parsing AI response:', parseError);
     }
 
     console.log('AI results:', { aiSummary, aiCategory });
