@@ -12,6 +12,35 @@ serve(async (req) => {
   }
 
   try {
+    // 1. Extract and verify authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('Missing authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // 2. Create client with user's token for auth verification
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    // 3. Verify user is authenticated
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+    if (authError || !user) {
+      console.error('Authentication failed:', authError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Invalid or expired token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Authenticated user:', user.id);
+
     const { reportId, description } = await req.json();
     
     if (!reportId || !description) {
@@ -19,6 +48,31 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Missing reportId or description' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // 4. Verify report ownership or admin status
+    const { data: report, error: reportError } = await supabaseAuth
+      .from('galamsey_reports')
+      .select('user_id')
+      .eq('id', reportId)
+      .single();
+
+    if (reportError || !report) {
+      console.error('Report not found or access denied:', reportError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Report not found or access denied' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check ownership or admin status
+    const { data: isAdmin } = await supabaseAuth.rpc('is_admin', { _user_id: user.id });
+    if (report.user_id !== user.id && !isAdmin) {
+      console.error('Access denied: user does not own report and is not admin');
+      return new Response(
+        JSON.stringify({ error: 'Access denied' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -96,12 +150,11 @@ Respond in this exact JSON format only:
 
     console.log('AI results:', { aiSummary, aiCategory });
 
-    // Update the report in database
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    // 5. Use service role for UPDATE operation (bypasses RLS)
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseService = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseService
       .from('galamsey_reports')
       .update({ ai_summary: aiSummary, ai_category: aiCategory })
       .eq('id', reportId);
