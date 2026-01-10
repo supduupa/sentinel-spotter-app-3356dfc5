@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Settings, Shield, FileWarning, Leaf } from "lucide-react";
 import environmentalDamage from "@/assets/environmental-damage.jpg";
+import { WalletConnect } from "@/components/WalletConnect";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -46,7 +47,10 @@ const Home = () => {
 
   return (
     <MobileContainer>
-      <HeaderBar title="Galamsey Reporter" />
+      <HeaderBar 
+        title="Galamsey Reporter" 
+        rightElement={<WalletConnect variant="compact" showRewards={true} />}
+      />
       
       <main className="animate-fade-in">
         {/* Hero Section */}
@@ -72,13 +76,18 @@ const Home = () => {
               Report Illegal Mining Activities
             </h2>
             <p className="text-muted-foreground text-sm mt-1">
-              Help protect our environment and communities
+              Help protect our environment and earn crypto rewards
             </p>
           </div>
         </div>
 
         {/* Content Section */}
         <div className="p-4 md:p-6 lg:p-8 space-y-6">
+          {/* Wallet Card - Show when user is logged in */}
+          {user && (
+            <WalletConnect variant="card" showRewards={true} className="mb-4" />
+          )}
+
           {/* Quick Actions */}
           <div className="grid grid-cols-2 gap-3 md:gap-4">
             <Button 

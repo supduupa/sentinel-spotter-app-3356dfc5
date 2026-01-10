@@ -11,7 +11,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { MapPin, Calendar, FileText, Image, User, Filter, Brain, Droplets, Trees, Mountain, HelpCircle, Trash2, Shield, Loader2, CalendarIcon } from "lucide-react";
+import { MapPin, Calendar, FileText, Image, User, Filter, Brain, Droplets, Trees, Mountain, HelpCircle, Trash2, Shield, Loader2, CalendarIcon, ExternalLink, Link2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -28,6 +28,8 @@ interface Report {
   ai_summary: string | null;
   ai_category: string | null;
   created_at: string;
+  scroll_tx_hash: string | null;
+  wallet_address: string | null;
 }
 
 interface UserProfile {
@@ -500,11 +502,23 @@ const AdminDashboard = () => {
                         </div>
                       )}
 
-                      {/* Timestamp */}
-                      <div className="pt-2 border-t">
+                      {/* Blockchain Status & Timestamp */}
+                      <div className="pt-2 border-t flex flex-wrap items-center justify-between gap-2">
                         <p className="text-xs text-muted-foreground">
                           Submitted {new Date(report.created_at).toLocaleString()}
                         </p>
+                        {report.scroll_tx_hash && (
+                          <a
+                            href={`https://sepolia.scrollscan.com/tx/${report.scroll_tx_hash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                          >
+                            <Link2 className="w-3 h-3" />
+                            Recorded on Scroll
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
                       </div>
                     </CardContent>
                   </Card>

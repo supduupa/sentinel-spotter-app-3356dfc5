@@ -31,6 +31,7 @@ export type Database = {
           scroll_tx_hash: string | null
           updated_at: string
           user_id: string | null
+          wallet_address: string | null
         }
         Insert: {
           ai_category?: string | null
@@ -48,6 +49,7 @@ export type Database = {
           scroll_tx_hash?: string | null
           updated_at?: string
           user_id?: string | null
+          wallet_address?: string | null
         }
         Update: {
           ai_category?: string | null
@@ -65,6 +67,7 @@ export type Database = {
           scroll_tx_hash?: string | null
           updated_at?: string
           user_id?: string | null
+          wallet_address?: string | null
         }
         Relationships: []
       }
