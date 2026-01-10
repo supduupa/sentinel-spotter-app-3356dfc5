@@ -1,15 +1,17 @@
 import { cn } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { ReactNode } from "react";
 
 interface HeaderBarProps {
   title: string;
   className?: string;
   showBack?: boolean;
   onBack?: () => void;
+  rightElement?: ReactNode;
 }
 
-export const HeaderBar = ({ title, className, showBack, onBack }: HeaderBarProps) => {
+export const HeaderBar = ({ title, className, showBack, onBack, rightElement }: HeaderBarProps) => {
   const navigate = useNavigate();
 
   const handleBack = () => {
@@ -26,19 +28,26 @@ export const HeaderBar = ({ title, className, showBack, onBack }: HeaderBarProps
       "sticky top-0 z-50 shadow-soft",
       className
     )}>
-      <div className="flex items-center gap-3 max-w-5xl mx-auto">
-        {showBack && (
-          <button
-            onClick={handleBack}
-            className="p-2 -ml-2 rounded-full hover:bg-primary-foreground/10 transition-colors"
-            aria-label="Go back"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
+      <div className="flex items-center justify-between gap-3 max-w-5xl mx-auto">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          {showBack && (
+            <button
+              onClick={handleBack}
+              className="p-2 -ml-2 rounded-full hover:bg-primary-foreground/10 transition-colors flex-shrink-0"
+              aria-label="Go back"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+          )}
+          <h1 className="font-display font-bold text-lg md:text-xl tracking-tight truncate">
+            {title}
+          </h1>
+        </div>
+        {rightElement && (
+          <div className="flex-shrink-0">
+            {rightElement}
+          </div>
         )}
-        <h1 className="font-display font-bold text-lg md:text-xl tracking-tight">
-          {title}
-        </h1>
       </div>
     </header>
   );
