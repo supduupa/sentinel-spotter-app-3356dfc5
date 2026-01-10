@@ -21,19 +21,21 @@ interface WalletState {
   error: string | null;
 }
 
+const initialState: WalletState = {
+  isConnected: false,
+  address: null,
+  isCorrectNetwork: false,
+  isConnecting: false,
+  rewards: {
+    rewardsWei: BigInt(0),
+    rewardsFormatted: '0',
+    reportCount: 0,
+  },
+  error: null,
+};
+
 export function useWallet() {
-  const [state, setState] = useState<WalletState>({
-    isConnected: false,
-    address: null,
-    isCorrectNetwork: false,
-    isConnecting: false,
-    rewards: {
-      rewardsWei: BigInt(0),
-      rewardsFormatted: '0',
-      reportCount: 0,
-    },
-    error: null,
-  });
+  const [state, setState] = useState<WalletState>(() => initialState);
 
   const updateRewards = useCallback(async (address: string) => {
     const rewards = await getWalletRewards(address);
@@ -103,18 +105,7 @@ export function useWallet() {
   }, []);
 
   const disconnect = useCallback(() => {
-    setState({
-      isConnected: false,
-      address: null,
-      isCorrectNetwork: false,
-      isConnecting: false,
-      rewards: {
-        rewardsWei: BigInt(0),
-        rewardsFormatted: '0',
-        reportCount: 0,
-      },
-      error: null,
-    });
+    setState(() => initialState);
   }, []);
 
   const refreshRewards = useCallback(async () => {
