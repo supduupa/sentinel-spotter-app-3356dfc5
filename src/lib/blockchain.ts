@@ -30,7 +30,7 @@ export const CONTRACT_ABI = [
 export const DEFAULT_CONTRACT_ADDRESS = '0xf8e81D47203A594245E36C48e151709F0C19fBe8';
 
 /**
- * Check if a valid contract is configured
+ * Check if a valid contract address is configured
  */
 export function isContractConfigured(): boolean {
   const address = getContractAddress();

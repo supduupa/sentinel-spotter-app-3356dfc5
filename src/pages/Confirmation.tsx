@@ -18,8 +18,10 @@ import {
   getRewardPerReport,
   getExplorerUrl,
   formatTxHash,
-  isContractConfigured
+  getContractAddress,
+  DEFAULT_CONTRACT_ADDRESS
 } from "@/lib/blockchain";
+import { ethers } from 'ethers';
 
 interface SubmissionState {
   status: 'idle' | 'submitting-db' | 'connecting-wallet' | 'submitting-chain' | 'success' | 'partial-success' | 'error';
@@ -144,7 +146,10 @@ const Confirmation = () => {
       sessionStorage.removeItem('capturedPhotos');
 
       // If wallet is connected and contract is configured, submit to blockchain
-      if (wallet.isConnected && wallet.isCorrectNetwork && isContractConfigured()) {
+      const contractAddress = getContractAddress();
+      const isContractDeployed = ethers.isAddress(contractAddress) && contractAddress !== '0x0000000000000000000000000000000000000000';
+      
+      if (wallet.isConnected && wallet.isCorrectNetwork && isContractDeployed) {
         await submitToBlockchain(report.id, formData.date, formData.location);
       } else {
         // Success without blockchain
