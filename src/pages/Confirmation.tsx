@@ -135,6 +135,10 @@ const Confirmation = () => {
         if (import.meta.env.DEV) console.error('AI processing error:', err);
       });
 
+      // Store report data for potential blockchain retry before clearing
+      const reportMeta = { date: formData.date, location: formData.location };
+      sessionStorage.setItem('lastReportMeta', JSON.stringify(reportMeta));
+
       // Clear sessionStorage
       sessionStorage.removeItem('reportFormData');
       sessionStorage.removeItem('reportLocation');
@@ -230,8 +234,10 @@ const Confirmation = () => {
 
   const handleRetryBlockchain = async () => {
     if (state.reportId) {
-      const formData = JSON.parse(sessionStorage.getItem('reportFormData') || '{}');
-      await submitToBlockchain(state.reportId, formData.date, formData.location);
+      const reportMeta = JSON.parse(sessionStorage.getItem('lastReportMeta') || '{}');
+      if (reportMeta.date && reportMeta.location) {
+        await submitToBlockchain(state.reportId, reportMeta.date, reportMeta.location);
+      }
     }
   };
 
