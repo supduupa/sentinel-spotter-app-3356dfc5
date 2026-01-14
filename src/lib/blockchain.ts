@@ -30,6 +30,14 @@ export const CONTRACT_ABI = [
 export const DEFAULT_CONTRACT_ADDRESS = '0xf8e81D47203A594245E36C48e151709F0C19fBe8';
 
 /**
+ * Check if a valid contract is configured
+ */
+export function isContractConfigured(): boolean {
+  const address = getContractAddress();
+  return ethers.isAddress(address);
+}
+
+/**
  * Get the contract address from environment or default
  */
 export function getContractAddress(): string {
@@ -151,8 +159,9 @@ export async function getContract(): Promise<ethers.Contract | null> {
   }
 
   const contractAddress = getContractAddress();
-  if (contractAddress === DEFAULT_CONTRACT_ADDRESS) {
-    console.warn('Using default contract address. Please deploy the contract and set VITE_SCROLL_CONTRACT_ADDRESS');
+  if (!isContractConfigured()) {
+    console.warn('Contract address not configured');
+    return null;
   }
 
   return new ethers.Contract(contractAddress, CONTRACT_ABI, signer);
@@ -162,11 +171,11 @@ export async function getContract(): Promise<ethers.Contract | null> {
  * Get a read-only contract instance (no signer needed)
  */
 export function getReadOnlyContract(): ethers.Contract | null {
-  const contractAddress = getContractAddress();
-  if (contractAddress === DEFAULT_CONTRACT_ADDRESS) {
+  if (!isContractConfigured()) {
     return null;
   }
 
+  const contractAddress = getContractAddress();
   const provider = new ethers.JsonRpcProvider(SCROLL_SEPOLIA_CONFIG.rpcUrls[0]);
   return new ethers.Contract(contractAddress, CONTRACT_ABI, provider);
 }
