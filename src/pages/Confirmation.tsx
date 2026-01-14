@@ -18,8 +18,7 @@ import {
   getRewardPerReport,
   getExplorerUrl,
   formatTxHash,
-  getContractAddress,
-  DEFAULT_CONTRACT_ADDRESS
+  isContractConfigured
 } from "@/lib/blockchain";
 
 interface SubmissionState {
@@ -144,12 +143,8 @@ const Confirmation = () => {
       sessionStorage.removeItem('reportLocation');
       sessionStorage.removeItem('capturedPhotos');
 
-      // Check if contract is deployed
-      const contractAddress = getContractAddress();
-      const isContractDeployed = contractAddress !== DEFAULT_CONTRACT_ADDRESS;
-
-      // If wallet is connected and contract is deployed, submit to blockchain
-      if (wallet.isConnected && wallet.isCorrectNetwork && isContractDeployed) {
+      // If wallet is connected and contract is configured, submit to blockchain
+      if (wallet.isConnected && wallet.isCorrectNetwork && isContractConfigured()) {
         await submitToBlockchain(report.id, formData.date, formData.location);
       } else {
         // Success without blockchain
