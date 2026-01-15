@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Settings, Shield, FileWarning, Leaf } from "lucide-react";
 import environmentalDamage from "@/assets/environmental-damage.jpg";
-import { WalletConnect } from "@/components/WalletConnect";
+import { ThirdwebWalletConnect } from "@/components/ThirdwebWalletConnect";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -49,7 +49,7 @@ const Home = () => {
     <MobileContainer>
       <HeaderBar 
         title="Galamsey Reporter" 
-        rightElement={<WalletConnect variant="compact" showRewards={true} />}
+        rightElement={<ThirdwebWalletConnect variant="compact" showRewards={true} />}
       />
       
       <main className="animate-fade-in">
@@ -85,7 +85,7 @@ const Home = () => {
         <div className="p-4 md:p-6 lg:p-8 space-y-6">
           {/* Wallet Card - Show when user is logged in */}
           {user && (
-            <WalletConnect variant="card" showRewards={true} className="mb-4" />
+            <ThirdwebWalletConnect variant="card" showRewards={true} className="mb-4" />
           )}
 
           {/* Quick Actions */}

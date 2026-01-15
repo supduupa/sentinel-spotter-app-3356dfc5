@@ -8,20 +8,11 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useWallet } from "@/hooks/useWallet";
+import { useThirdwebWallet } from "@/hooks/useThirdwebWallet";
 import { reportSubmissionSchema, photosSchema } from "@/lib/validations";
 import { RewardConfirmation } from "@/components/RewardConfirmation";
-import { WalletConnect } from "@/components/WalletConnect";
-import { 
-  hashReportData, 
-  submitReportToBlockchain,
-  getRewardPerReport,
-  getExplorerUrl,
-  formatTxHash,
-  getContractAddress,
-  DEFAULT_CONTRACT_ADDRESS
-} from "@/lib/blockchain";
-import { ethers } from 'ethers';
+import { ThirdwebWalletConnect } from "@/components/ThirdwebWalletConnect";
+import { getExplorerUrl, formatTxHash, CONTRACT_ADDRESS } from "@/lib/thirdweb";
 
 interface SubmissionState {
   status: 'idle' | 'submitting-db' | 'connecting-wallet' | 'submitting-chain' | 'success' | 'partial-success' | 'error';
@@ -36,7 +27,7 @@ const Confirmation = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
-  const wallet = useWallet();
+  const wallet = useThirdwebWallet();
   const hasSubmittedRef = useRef(false);
   
   const [state, setState] = useState<SubmissionState>({
@@ -47,13 +38,6 @@ const Confirmation = () => {
     reportId: null,
     error: null,
   });
-  
-  const [rewardAmount, setRewardAmount] = useState('10');
-
-  useEffect(() => {
-    // Fetch reward amount
-    getRewardPerReport().then(setRewardAmount);
-  }, []);
 
   useEffect(() => {
     // Prevent duplicate submissions in React strict mode
@@ -145,11 +129,8 @@ const Confirmation = () => {
       sessionStorage.removeItem('reportLocation');
       sessionStorage.removeItem('capturedPhotos');
 
-      // If wallet is connected and contract is configured, submit to blockchain
-      const contractAddress = getContractAddress();
-      const isContractDeployed = ethers.isAddress(contractAddress) && contractAddress !== '0x0000000000000000000000000000000000000000';
-      
-      if (wallet.isConnected && wallet.isCorrectNetwork && isContractDeployed) {
+      // If wallet is connected and on correct network, submit to blockchain
+      if (wallet.isConnected && wallet.isCorrectNetwork && CONTRACT_ADDRESS) {
         await submitToBlockchain(report.id, formData.date, formData.location);
       } else {
         // Success without blockchain
@@ -182,15 +163,15 @@ const Confirmation = () => {
 
     try {
       // Hash report data (no personal info)
-      const reportHash = hashReportData({
+      const reportHash = wallet.hashReportData({
         reportId,
         date,
         location,
         timestamp: Date.now(),
       });
 
-      // Submit to blockchain
-      const { txHash, success } = await submitReportToBlockchain(reportHash);
+      // Submit to blockchain using Thirdweb
+      const { txHash, success } = await wallet.submitReportToBlockchain(reportHash);
 
       if (success && txHash) {
         // Update database with transaction hash
@@ -211,7 +192,7 @@ const Confirmation = () => {
 
         toast({
           title: "Report Recorded on Blockchain!",
-          description: "You earned crypto rewards for this report.",
+          description: "You earned reward points for this report.",
         });
       }
     } catch (error) {
@@ -245,7 +226,7 @@ const Confirmation = () => {
     navigate("/");
   };
 
-  const isLoading = ['submitting-db', 'connecting-wallet', 'submitting-chain'].includes(state.status);
+  const isLoading = ['submitting-db', 'connecting-wallet', 'submitting-chain'].includes(state.status) || wallet.isSubmitting;
 
   const getLoadingMessage = () => {
     switch (state.status) {
@@ -254,7 +235,7 @@ const Confirmation = () => {
       case 'connecting-wallet':
         return 'Connecting wallet...';
       case 'submitting-chain':
-        return 'Recording on Scroll blockchain...';
+        return wallet.isSubmitting ? 'Confirming transaction in wallet...' : 'Recording on Scroll blockchain...';
       default:
         return 'Processing...';
     }
@@ -289,7 +270,7 @@ const Confirmation = () => {
             <>
               <RewardConfirmation 
                 txHash={state.txHash}
-                rewardAmount={rewardAmount}
+                rewardAmount={wallet.rewardPerReport}
               />
               <Button 
                 size="lg"
@@ -322,9 +303,10 @@ const Confirmation = () => {
                       variant="outline" 
                       size="sm"
                       onClick={handleRetryBlockchain}
+                      disabled={wallet.isSubmitting}
                     >
                       <Wallet className="w-4 h-4 mr-2" />
-                      Retry Blockchain
+                      {wallet.isSubmitting ? 'Submitting...' : 'Retry Blockchain'}
                     </Button>
                   </div>
                 )}
@@ -332,9 +314,9 @@ const Confirmation = () => {
                 {!wallet.isConnected && (
                   <div className="mb-4">
                     <p className="text-sm text-muted-foreground mb-3">
-                      Connect a wallet to earn crypto rewards for future reports!
+                      Connect a wallet to earn reward points for future reports!
                     </p>
-                    <WalletConnect variant="compact" showRewards={false} />
+                    <ThirdwebWalletConnect variant="compact" showRewards={false} />
                   </div>
                 )}
 
