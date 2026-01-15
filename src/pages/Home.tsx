@@ -26,7 +26,8 @@ const Home = () => {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase.rpc('is_admin', { _user_id: user.id });
+      // Use parameterless function to prevent checking other users' admin status
+      const { data, error } = await supabase.rpc('is_current_user_admin');
       if (error) throw error;
       setIsAdmin(data || false);
     } catch (error) {
